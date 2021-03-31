@@ -23,41 +23,57 @@ const Article = mongoose.model('Article', articleSchema);
 
 //TO DO
 
-app.get('/articles', (req, res) => {
-    Article.find(function (err, foundArticles) {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send(foundArticles);
-        }
+//refactor to app.route
+//Request to all articles
+app.route('/articles')
+    .get((req, res) => {
+        Article.find(function (err, foundArticles) {
+            if (err) {
+                console.log(err);
+            } else {
+                res.send(foundArticles);
+            }
+        });
+    })
+    .post((req, res) => {
+        const newArticle = new Article({
+            title: req.body.title,
+            content: req.body.connect
+        });
+        newArticle.save((err) => {
+            if (err) {
+                res.send(err);
+            } else {
+                res.send(`Article: ${newArticle} succesfully added`);
+            }
+        });
+    })
+    .delete((req, res) => {
+        Article.deleteMany((err) => {
+            if (err) {
+                res.send(err);
+            } else {
+                res.send("Successfully deleted all articles");
+            }
+        });
     });
-});
 
-app.post('/articles', (req, res) => {
 
-    const newArticle = new Article({
-        title: req.body.title,
-        content: req.body.connect
+//Requests targeting a specific article
+app.route('/articles/:articleTitle')
+    .get((req,res)=>{
+        Article.findOne({title: req.params.articleTitle}, (err, foundArticle)=>{
+            if(foundArticle){
+                res.send(foundArticle)
+            }else{
+                res.send(`No article with the name: ${req.params.articleTitle} found`)
+            }
+            if(err){
+                console.log(err)
+            }
+        })
     });
-
-    newArticle.save((err) => {
-        if (err) {
-            res.send(err);
-        } else {
-            res.send(`Article: ${newArticle} succesfully added`);
-        }
-    });
-});
-
-app.delete('/articles', (req, res)=>{
-    Article.deleteMany((err)=>{
-        if(err){
-            res.send(err);
-        }else{
-            res.send("Successfully deleted all articles");
-        }
-    });
-});
+    
 
 //LISTEN
 app.listen(3000, () => {
